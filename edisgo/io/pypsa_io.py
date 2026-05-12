@@ -229,6 +229,24 @@ def to_pypsa(edisgo_object, mode=None, timesteps=None, **kwargs):
         "v_mag_pu_set",
     )
 
+    if mode == "lv":
+        print("Adjusting MVLV transformer setpoints...")
+        load_case = edisgo_object.timeseries.timeindex_worst_cases[
+             "load_case_lv"
+        ]
+        feedin_case = edisgo_object.timeseries.timeindex_worst_cases[
+             "feed-in_case_lv"
+        ]
+        value_load_case = 1.0
+        value_feedin_case = 1.0
+
+        bus = pypsa_network.buses[
+            (pypsa_network.buses.index.str.contains(lv_grid_id))
+            &(pypsa_network.buses.index.str.contains("BusBar"))].index[0]
+
+        pypsa_network.buses_t["v_mag_pu_set"].loc[load_case, bus] = value_load_case
+        pypsa_network.buses_t["v_mag_pu_set"].loc[feedin_case, bus] = value_feedin_case
+
     # set slack time series
     slack_ts = pd.DataFrame(
         data=[0] * len(timesteps),
