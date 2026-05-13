@@ -230,18 +230,23 @@ def to_pypsa(edisgo_object, mode=None, timesteps=None, **kwargs):
     )
 
     if mode == "lv":
-        print("Adjusting MVLV transformer setpoints...")
+        print("Adjusting MVLV transformer setpoints")
+        
         load_case = edisgo_object.timeseries.timeindex_worst_cases[
              "load_case_lv"
         ]
         feedin_case = edisgo_object.timeseries.timeindex_worst_cases[
              "feed-in_case_lv"
         ]
-        value_load_case = 1.0
-        value_feedin_case = 1.0
+        
+        bus = edisgo_object.topology.transformers_df[edisgo_object.topology.transformers_df.index.str.startswith(str(lv_grid_id))].bus0.values[0]
+        
+        value_feedin_case = edisgo_object.results.v_res[bus].loc[feedin_case]
+        value_load_case = edisgo_object.results.v_res[bus].loc[load_case]
+        
 
         bus = pypsa_network.buses[
-            (pypsa_network.buses.index.str.contains(lv_grid_id))
+            (pypsa_network.buses.index.str.contains(str(lv_grid_id)))
             &(pypsa_network.buses.index.str.contains("BusBar"))].index[0]
 
         pypsa_network.buses_t["v_mag_pu_set"].loc[load_case, bus] = value_load_case
