@@ -239,18 +239,15 @@ def to_pypsa(edisgo_object, mode=None, timesteps=None, **kwargs):
              "feed-in_case_lv"
         ]
         
-        bus = edisgo_object.topology.transformers_df[edisgo_object.topology.transformers_df.index.str.startswith(str(lv_grid_id))].bus0.values[0]
-        
-        value_feedin_case = edisgo_object.results.v_res[bus].loc[feedin_case]
-        value_load_case = edisgo_object.results.v_res[bus].loc[load_case]
-        
+        bus_mv = edisgo_object.topology.transformers_df[edisgo_object.topology.transformers_df.index.str.startswith(str(lv_grid_id))].bus0.values[0]
 
-        bus = pypsa_network.buses[
-            (pypsa_network.buses.index.str.contains(str(lv_grid_id)))
-            &(pypsa_network.buses.index.str.contains("BusBar"))].index[0]
+        value_feedin_case = edisgo_object.results.v_res[bus_mv].loc[feedin_case]
+        value_load_case = edisgo_object.results.v_res[bus_mv].loc[load_case]
 
+        bus = slack_df.bus.values[0]
         pypsa_network.buses_t["v_mag_pu_set"].loc[load_case, bus] = value_load_case
         pypsa_network.buses_t["v_mag_pu_set"].loc[feedin_case, bus] = value_feedin_case
+
 
     # set slack time series
     slack_ts = pd.DataFrame(
